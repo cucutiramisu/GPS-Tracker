@@ -59,8 +59,8 @@
     <p><strong>Kendaraan Aktif:</strong> <span id="userKendaraan"></span></p>
 
     <h3>Informasi Pengguna</h3>
-    <p>Nama: John Doe</p>
-    <p>Email: johndoe@example.com</p>
+    <p>Nama: rara</p>
+    <p>Email: rara@contoh.com</p>
 
     <h3>Daftar Perangkat</h3>
     <ul>
@@ -81,7 +81,9 @@
     <p><strong>Status Baterai:</strong> 80%</p>
     <p><strong>Kekuatan Sinyal GPS:</strong> Kuat</p>
     <p><strong>Arah Lokasi:</strong> Barat Laut</p>
-    <p><strong>Zona Aman:</strong> Aktif</p>
+    <p><strong>Estimasi Waktu peminjaman:</strong> tanggal 13-15 MEI 2025</p>
+    <p><strong>status :</strong> Over estimasi</p>
+    </p>
     <button class="primary" onclick="mapPosisi.setView([user.lat, user.lng], 16)">Arahkan ke Lokasi</button>
     <div id="mapPosisi"></div>
   </div>
@@ -105,7 +107,7 @@
     <input type="date" id="tanggalRiwayat">
     <p><strong>Total Jarak:</strong> 32 km</p>
     <p><strong>Durasi:</strong> 1 jam 45 menit</p>
-    <p><strong>Rute:</strong> Rumah - Kantor - Toko</p>
+    <p><strong>Rute:</strong> Rumah - Kantor - Hotel</p>
     <button class="primary" onclick="alert('Fitur putar rute belum aktif')">Putar Perjalanan</button>
     <button class="primary" onclick="alert('Fitur info rute belum aktif')">Lihat Info Rute</button>
     <div id="mapRiwayat"></div>
@@ -119,7 +121,7 @@
   <button class="tablink" onclick="showTab(event, 'riwayat')">Riwayat</button>
 </nav>
 
-<footer><p>&copy; 2025 GPS Tracker </p></footer>
+<footer><p>&copy; 2025 GPS Tracker ACC</p></footer>
 
 <script>
 let user = {};

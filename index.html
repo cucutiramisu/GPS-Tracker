@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>GPS Tracker </title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; }
+    header, footer { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+    .container { padding: 20px; margin-bottom: 70px; }
+    .page { display: none; background: white; padding: 20px; border-radius: 8px; margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .page.active { display: block; }
+    input, button, select { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; }
+    button.primary { background-color: #3498db; color: white; border: none; }
+    button.primary:hover { background-color: #2980b9; }
+    #mapPosisi, #mapRealtime, #mapRiwayat { height: 300px; border-radius: 10px; margin-top: 10px; }
+    .alert { background: #e74c3c; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px; display: none; }
+
+    nav {
+      display: flex;
+      background: #34495e;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+    nav button {
+      flex: 1;
+      padding: 15px;
+      background: #34495e;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    nav button:hover,
+    nav button.active {
+      background: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+<header><h1>GPS Tracker </h1></header>
+
+<div class="container">
+  <div id="login" class="page active">
+    <h2>Login</h2>
+    <input type="text" id="inputHP" placeholder="Nomor HP">
+    <input type="text" id="inputKendaraan" placeholder="Plat Nomor">
+    <button class="primary" onclick="login()">Masuk</button>
+  </div>
+
+  <div id="profil" class="page">
+    <h2>Profil Pengguna</h2>
+    <p><strong>Nomor HP:</strong> <span id="userHP"></span></p>
+    <p><strong>Kendaraan Aktif:</strong> <span id="userKendaraan"></span></p>
+
+    <h3>Informasi Pengguna</h3>
+    <p>Nama: rara</p>
+    <p>Email: rara@contoh.com</p>
+
+    <h3>Daftar Perangkat</h3>
+    <ul>
+      <li>Tracker 1 - Aktif</li>
+      <li>Tracker 2 - Tidak Aktif</li>
+    </ul>
+
+    <h3>Pengaturan Aplikasi</h3>
+    <button class="primary" onclick="alert('Menu pengaturan belum tersedia')">Buka Pengaturan</button>
+
+    <h3>Keluar</h3>
+    <button class="primary" onclick="logout()">Logout</button>
+  </div>
+
+  <div id="posisi" class="page">
+    <h2>Posisi Kendaraan</h2>
+    <p><strong>Waktu Terakhir:</strong> <span id="waktuPosisi">15 Mei 2025, 13:30</span></p>
+    <p><strong>Status Baterai:</strong> 80%</p>
+    <p><strong>Kekuatan Sinyal GPS:</strong> Kuat</p>
+    <p><strong>Arah Lokasi:</strong> Barat Laut</p>
+    <p><strong>Estimasi Waktu peminjaman:</strong> tanggal 13-15 MEI 2025</p>
+    <p><strong>status :</strong> Over estimasi</p>
+    </p>
+    <button class="primary" onclick="mapPosisi.setView([user.lat, user.lng], 16)">Arahkan ke Lokasi</button>
+    <div id="mapPosisi"></div>
+  </div>
+
+  <div id="realtime" class="page">
+    <h2>Pelacakan Real-Time</h2>
+    <div class="alert" id="zonaAlert">Kendaraan keluar dari zona aman!</div>
+    <p><strong>Status Kendaraan:</strong> Bergerak</p>
+    <p><strong>Kecepatan:</strong> 60 km/jam</p>
+    <p><strong>Arah:</strong> Timur</p>
+    <p><strong>Durasi Aktif:</strong> 2 jam</p>
+    <button class="primary" onclick="alert('Pelacakan dimulai')">Mulai Pelacakan</button>
+    <button class="primary" onclick="alert('Pelacakan dihentikan')">Berhenti Pelacakan</button>
+    <button class="primary" onclick="simulasiGerak()">Capture Posisi Sekarang</button>
+    <div id="mapRealtime"></div>
+  </div>
+
+  <div id="riwayat" class="page">
+    <h2>Riwayat Perjalanan</h2>
+    <label for="tanggalRiwayat"><strong>Pilih Tanggal:</strong></label>
+    <input type="date" id="tanggalRiwayat">
+    <p><strong>Total Jarak:</strong> 32 km</p>
+    <p><strong>Durasi:</strong> 1 jam 45 menit</p>
+    <p><strong>Rute:</strong> Rumah - Kantor - Toko</p>
+    <button class="primary" onclick="alert('Fitur putar rute belum aktif')">Putar Perjalanan</button>
+    <button class="primary" onclick="alert('Fitur info rute belum aktif')">Lihat Info Rute</button>
+    <div id="mapRiwayat"></div>
+  </div>
+</div>
+
+<nav id="navTabs" style="display: none;">
+  <button class="tablink active" onclick="showTab(event, 'profil')">Profil</button>
+  <button class="tablink" onclick="showTab(event, 'posisi')">Posisi</button>
+  <button class="tablink" onclick="showTab(event, 'realtime')">Real-Time</button>
+  <button class="tablink" onclick="showTab(event, 'riwayat')">Riwayat</button>
+</nav>
+
+<footer><p>&copy; 2025 GPS Tracker ACC</p></footer>
+
+<script>
+let user = {};
+let zona, mapPosisi, mapRealtime, markerRealtime;
+const zonaRadius = 1000;
+
+function login() {
+  const hp = document.getElementById('inputHP').value.trim();
+  const kendaraan = document.getElementById('inputKendaraan').value.trim();
+  if (!hp || !kendaraan) return alert('Lengkapi data login.');
+  user = { hp, kendaraan, lat: -6.2, lng: 106.816 };
+  localStorage.setItem('gps_user', JSON.stringify(user));
+  tampilkanProfil();
+}
+
+function tampilkanProfil() {
+  user = JSON.parse(localStorage.getItem('gps_user'));
+  if (!user) return;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('navTabs').style.display = 'flex';
+  document.getElementById('userHP').textContent = user.hp;
+  document.getElementById('userKendaraan').textContent = user.kendaraan;
+  document.getElementById('profil').classList.add('active');
+}
+
+function logout() {
+  localStorage.removeItem('gps_user');
+  location.reload();
+}
+
+function showTab(evt, tabId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
+  evt.currentTarget.classList.add('active');
+  if (tabId === 'posisi') setTimeout(initMapPosisi, 100);
+  if (tabId === 'realtime') setTimeout(initMapRealtime, 100);
+  if (tabId === 'riwayat') setTimeout(initMapRiwayat, 100);
+}
+
+function initMapPosisi() {
+  if (mapPosisi) return;
+  mapPosisi = L.map('mapPosisi').setView([user.lat, user.lng], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapPosisi);
+  L.marker([user.lat, user.lng]).addTo(mapPosisi).bindPopup("Kendaraan").openPopup();
+  zona = L.circle([user.lat, user.lng], { radius: zonaRadius, color: 'green' }).addTo(mapPosisi);
+}
+
+function initMapRealtime() {
+  if (mapRealtime) return;
+  mapRealtime = L.map('mapRealtime').setView([user.lat, user.lng], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRealtime);
+  markerRealtime = L.marker([user.lat, user.lng]).addTo(mapRealtime).bindPopup("Tracking").openPopup();
+  L.circle([user.lat, user.lng], { radius: zonaRadius, color: 'green' }).addTo(mapRealtime);
+}
+
+function simulasiGerak() {
+  const lat = user.lat + (Math.random() - 0.5) * 0.02;
+  const lng = user.lng + (Math.random() - 0.5) * 0.02;
+  markerRealtime.setLatLng([lat, lng]);
+  mapRealtime.setView([lat, lng]);
+  const jarak = mapRealtime.distance([lat, lng], [user.lat, user.lng]);
+  document.getElementById('zonaAlert').style.display = jarak > zonaRadius ? 'block' : 'none';
+}
+
+function initMapRiwayat() {
+  if (document.getElementById('mapRiwayat').innerHTML !== '') return;
+  const map = L.map('mapRiwayat').setView([-6.2, 106.816], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.polyline([
+    [-6.2, 106.816],
+    [-6.21, 106.82],
+    [-6.22, 106.823]
+  ], { color: 'blue' }).addTo(map);
+}
+
+window.onload = () => {
+  if (localStorage.getItem('gps_user')) tampilkanProfil();
+};
+</script>
+</body>
+</html>
